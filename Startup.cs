@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using mvc1.Models;
@@ -32,6 +33,14 @@ namespace mvc1
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            var host = Configuration["DBHOST"] ?? "localhost";
+            var port = Configuration["DBPORT"] ?? "3306";
+            var password = Configuration["DBPASSWORD"] ?? "*******";
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseMySql($"server={host};userid=root;pwd={password};"
+                    + $"port={port};database=produtosdb"));
+
             services.AddTransient<IRepository, TesteRepository>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -52,6 +61,8 @@ namespace mvc1
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             // app.UseCookiePolicy();
+
+            PopulaDb.IncluiDadosDB(app);
 
             app.UseMvc(routes =>
             {
